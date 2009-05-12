@@ -18,7 +18,7 @@
 #			-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host
 #
 
-mysql_backup_enable="YES"
+mysql_backup_enable=no
 mysql_db_user="root"
 mysql_db_passwd=""
 mysql_db_host="localhost"

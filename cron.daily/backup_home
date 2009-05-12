@@ -16,7 +16,6 @@ home_backup_savedays=${home_backup_savedays:-"7"}
 
 case $home_backup_enable in
 	[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
-	  echo "not enabled"
 		exit 1
 		;;
 esac
