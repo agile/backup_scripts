@@ -1,0 +1,4 @@
+etc_backup_enable=YES
+etc_backup_dir=/home/archives/$(hostname)/etc
+etc_backup_savedays=7
+

@@ -1,0 +1,12 @@
+# to enable and fine-tune nightly backup of all postgres databases:
+#
+# daily_postgres_backup_enable (bool):	Defaults to "NO"
+# daily_postgres_vacuum_enable (bool):	Defaults to "NO"
+# daily_postgres_vacuum_args (str):     Defaults to "-z"
+# daily_postgres_pgdump_args (str):     Defaults to "-b -F c"
+# daily_postgres_backupdir (str):       Defaults to "~postgres/backups"
+# daily_postgres_savedays (str):        Defaults to "7"
+
+daily_postgres_backup_enable="YES"
+daily_postgres_vacuum_enable="YES"
+daily_postgres_backupdir="/home/archives/$(hostname)/postgres"

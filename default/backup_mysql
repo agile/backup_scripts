@@ -1,0 +1,27 @@
+# to enable and fine-tune nightly backup of all mysql databases:
+#
+# mysql_backup_enable (bool):	Set to "NO" by default
+#				Set it to "YES" to enable nightly backup
+# mysql_db_user (str):		Set to "root" by default (the mysql "db root")
+#				Modify it for your needs (might be "mysql")
+# mysql_db_passwd (str):	Set to "dbpasswd" by default
+#				Modify it for your needs
+# mysql_db_host (str):		Set to "localhost" by default
+# mysql_backup_dir (str):	Set to "/var/db/mysql/backups" by default
+#				Modify it for your needs
+# mysql_backup_save_days (str):	Set to "7" by default
+#				Set it to the no. of mysql backup's you want to keep
+#
+# mysql_args (str):	By default set to:
+#			-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host
+# mysql_dump_args (str):	By default set to:
+#			-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host
+#
+
+mysql_backup_enable="YES"
+mysql_db_user="root"
+mysql_db_passwd=""
+mysql_db_host="localhost"
+mysql_backup_dir="/home/archives/$(hostname)/mysql"
+mysql_args="-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host"
+mysql_dump_args="$mysql_args --add-drop-table --complete-insert --quote-name"

@@ -1,0 +1,4 @@
+home_backup_enable=no
+home_backup_dir=/home/archives/$(hostname)/home
+home_backup_savedays=7
+

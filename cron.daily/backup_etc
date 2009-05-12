@@ -1,0 +1,33 @@
+#! /bin/bash
+
+DIR=`dirname $0`
+progname=`basename $0`
+PRG=`cd $DIR; pwd `/$progname
+
+if [ -r /etc/default/backup_etc ]
+then
+  . /etc/default/backup_etc
+fi
+
+etc_backup_enable=${etc_backup_enable:-"NO"}
+etc_backup_dir=${etc_backup_dir:-"/home/archives/etc"}
+etc_backup_savedays=${etc_backup_savedays:-"7"}
+
+case $etc_backup_enable in
+	[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+		exit 1
+		;;
+esac
+
+if [ ! -d "$etc_backup_dir" ] ; then 
+    echo "Creating $etc_backup_dir"
+    mkdir -p $etc_backup_dir
+fi
+
+umask 077
+now=`date "+%Y-%m-%dT%H%M%S"`
+`cd /; tar zcf $etc_backup_dir/etc_${now}.tgz etc`
+
+# cleaning up old data
+find $etc_backup_dir -name 'etc_*' -a -mtime +$etc_backup_savedays -delete
+

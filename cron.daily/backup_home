@@ -1,0 +1,35 @@
+#! /bin/bash
+# Back up home directories, excluding the archives dir
+
+DIR=`dirname $0`
+progname=`basename $0`
+PRG=`cd $DIR; pwd `/$progname
+
+if [ -r /etc/default/backup_home ]
+then
+  . /etc/default/backup_home
+fi
+
+home_backup_enable=${home_backup_enable:-"NO"}
+home_backup_dir=${home_backup_dir:-"/home/archives/home"}
+home_backup_savedays=${home_backup_savedays:-"7"}
+
+case $home_backup_enable in
+	[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+	  echo "not enabled"
+		exit 1
+		;;
+esac
+
+if [ ! -d "$home_backup_dir" ] ; then 
+    echo "Creating $home_backup_dir"
+    mkdir -p $home_backup_dir
+fi
+
+umask 077
+now=`date "+%Y-%m-%dT%H%M%S"`
+`cd /; tar zcf $home_backup_dir/home_${now}.tgz --exclude "home/archives" home`
+
+# cleaning up old data
+find $home_backup_dir -name 'home_*' -a -mtime +$home_backup_savedays -delete
+chown -R mike $home_backup_dir

@@ -1,0 +1,76 @@
+#!/bin/sh
+# Maintenance shell script to vacuum and backup database
+
+# If there is a global system configuration file, suck it in.
+if [ -r /etc/default/backup_postgres ]
+then
+    . /etc/default/backup_postgres
+fi
+# Establish defaults
+daily_postgres_backup_enable=${daily_postgres_backup_enable:-"NO"} # do backup
+daily_postgres_vacuum_enable=${daily_postgres_vacuum_enable:-"NO"} # do vacuum
+daily_postgres_vacuum_args=${daily_postgres_vacuum_args:-"-z"}
+daily_postgres_pgdump_args=${daily_postgres_pgdump_args:-"-b -F c"}
+# backupdir is relative to ~postgres home directory unless it begins with a slash:
+daily_postgres_backupdir=${daily_postgres_backupdir:-"~postgres/backups"}
+daily_postgres_savedays=${daily_postgres_savedays:-"7"}
+# allow '~´ in dir name
+eval backupdir=${daily_postgres_backupdir}
+
+rc=0
+
+case "$daily_postgres_backup_enable" in
+    [Yy][Ee][Ss])
+
+	# daily_postgres_backupdir must be writeable by user postgres
+	# ~postgres is just that under normal circumstances,
+	# but this might not be where you want the backups...
+	if [ ! -d ${backupdir} ] ; then 
+	    echo Creating ${backupdir}
+	    mkdir ${backupdir}; chmod 700 ${backupdir}; chown postgres ${backupdir}
+	fi
+
+	echo
+	echo "PostgreSQL maintenance"
+
+	# Protect the data
+	umask 077
+	dbnames=`su -l postgres -c "psql -q -t -A -d template1 -c SELECT\ datname\ FROM\ pg_database\ WHERE\ datname!=\'template0\'"`
+	rc=$?
+	now=`date "+%Y-%m-%dT%H:%M:%S"`
+	file=${daily_postgres_backupdir}/pgglobals_${now}
+	su -l postgres -c "pg_dumpall -g | gzip -9 > ${file}.gz"
+	for db in ${dbnames}; do
+	    echo -n " $db"
+	    file=${backupdir}/pgdump_${db}_${now}
+	    su -l postgres -c "pg_dump ${daily_postgres_pgdump_args} -f ${file} ${db}"
+	    [ $? -gt 0 ] && rc=3
+	done
+
+	if [ $rc -gt 0 ]; then
+	    echo
+	    echo "Errors were reported during backup."
+	fi
+
+	# cleaning up old data
+	find ${backupdir} \( -name 'pgdump_*' -o -name 'pgglobals_*' \) \
+	    -a -mtime +${daily_postgres_savedays} -delete
+	;;
+esac
+
+case "$daily_postgres_vacuum_enable" in
+    [Yy][Ee][Ss])
+
+	echo
+	echo "vacuuming..."
+	su -l postgres -c "vacuumdb -a -q ${daily_postgres_vacuum_args}"
+	if [ $? -gt 0 ]
+	then
+	    echo
+	    echo "Errors were reported during vacuum."
+	    rc=3
+	fi
+	;;
+esac
+
+exit $rc

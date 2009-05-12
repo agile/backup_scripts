@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#
+sudo cp default/* /etc/default
+sudo cp cron.daily /etc/cron.daily
+sudo chmod 770 /etc/cron.daily/backup*
+sudo chmod 660 /etc/default/backup*
+echo "You'll likely want to edit the /etc/default/backup* files to configure to your needs"
+echo "I would also recommend manually running each script to ensure it's working properly."

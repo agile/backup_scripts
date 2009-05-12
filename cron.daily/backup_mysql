@@ -1,0 +1,82 @@
+#! /bin/bash
+# Maintenance shell script to backup mysql databases
+######################################################################
+#
+# Implementation notes:
+#
+# 1) The script filters db's with names "Database" and "backups" since
+#    mysql treats every subdir under "base dbdir" as potential db-dir
+# 2) The default mysql database directory is possibly not /var/db/mysql
+#    But IMHO it would be a good thing
+# 3) The default mysql "super-user" with all rights is possibly not
+#    "root" user. It might be "mysql", I don't remember the defaults.
+#
+######################################################################
+
+DIR=`dirname $0`
+progname=`basename $0`
+PRG=`cd $DIR; pwd `/$progname
+
+if [ -r /etc/default/backup_mysql ]
+then
+  . /etc/default/backup_mysql
+fi
+
+# set defaults
+mysql_backup_enable=${mysql_backup_enable:-"NO"}
+mysql_db_user=${mysql_db_user:-"root"}
+mysql_db_passwd=${mysql_db_passwd:-"dbpasswd"}
+mysql_db_host=${mysql_db_host:-"localhost"}
+mysql_backup_dir=${mysql_backup_dir:-"/var/db/mysql/backups"}
+mysql_backup_savedays=${mysql_backup_savedays:-"7"}
+mysql_args=${mysql_args:-\
+			"-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host"}
+mysql_dump_args=${mysql_dump_args:-\
+			"-u$mysql_db_user -p$mysql_db_passwd -h$mysql_db_host"}
+
+case $mysql_backup_enable in
+	[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+		exit 1
+		;;
+esac
+
+# MySQL Hostname
+DBHOST='localhost'
+
+# Run as mysql super user
+if [ `id -un` != $mysql_db_user ]; then
+    su -l $mysql_db_user -c ${PRG}
+    exit $?
+fi
+
+# $mysql_backup_dir must be writeable by db user
+if [ ! -d "$mysql_backup_dir" ] ; then 
+    echo "Creating $mysql_backup_dir"
+    mkdir -p $mysql_backup_dir
+fi
+
+
+# Protect the data
+umask 077
+dbnames=`mysql ${mysql_args} -e"show databases"`
+rc=$?
+now=`date "+%Y-%m-%dT%H%M%S"`
+for db in ${dbnames}; do
+	if [ "$db" != "Database" -a "$db" != "backups" ]; then
+		#echo -n " $db"
+		file=$mysql_backup_dir/mysqldump_${db}_${now}.gz
+		mysqldump ${mysql_dump_args} ${db} | gzip --best > $file
+		[ $? -gt 0 ] && rc=3
+	fi
+done
+
+if [ $rc -gt 0 ]; then
+    echo
+    echo "Errors were reported during backup."
+fi
+
+# cleaning up old data
+find $mysql_backup_dir -name 'mysqldump_*' \
+	-a -mtime +$mysql_backup_savedays -delete
+
+exit $rc
