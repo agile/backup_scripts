@@ -1,0 +1,5 @@
+# backup_zync_enable=${backup_zync_enable:-"NO"}
+# backup_zync_src=${backup_zync_dest:-"/home/archives/$(hostname)"}
+# backup_zync_host=${backup_zync_host:-"root@mybackupserver"}
+# backup_zync_dest=${backup_zync_dest:-"/home/archives/$(hostname)"}
+

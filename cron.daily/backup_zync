@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# presumes you have a shared key arrangement between 
+# the machine you're syncing to and this machine
+#
+if [ -r /etc/default/backup_zync ]; then
+  . /etc/default/backup_zync
+fi
+
+backup_zync_enable=${backup_zync_enable:-"NO"}
+backup_zync_src=${backup_zync_dest:-"/home/archives/$(hostname)"}
+backup_zync_host=${backup_zync_host:-"root@mybackupserver"}
+backup_zync_dest=${backup_zync_dest:-"/home/archives/$(hostname)"}
+
+case $etc_backup_enable in
+	[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|0)
+		exit 1
+		;;
+esac
+
+rsync --delete --force -Savhuze ssh ${backup_zync_src} ${backup_zync_host}:${backup_zync_dest}
+
+
