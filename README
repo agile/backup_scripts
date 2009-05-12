@@ -1,0 +1,13 @@
+Just a simple set of backup scripts to keep daily snapshots of 
+databases (mysql/postgres), /etc and /home
+
+run the install_backups file or 
+copy the files to /etc/default and /etc/cron.daily, 
+edit the /etc/default/backup* files
+
+then run the /etc/cron.daily/backup* files to make an initial
+backup and make sure everything works properly. 
+
+
+
+
