@@ -1,9 +1,14 @@
 #!/bin/bash
 #
 #
-sudo cp default/* /etc/default
-sudo cp cron.daily /etc/cron.daily
-sudo chmod 770 /etc/cron.daily/backup*
-sudo chmod 660 /etc/default/backup*
+if [ ! $(id -u) -eq 0 ]; then
+  echo "Run as root, eg: sudo ${0}"
+  exit
+fi
+cp default/* /etc/default
+cp cron.daily/* /etc/cron.daily
+chmod 770 /etc/cron.daily/backup*
+chmod 660 /etc/default/backup*
+
 echo "You'll likely want to edit the /etc/default/backup* files to configure to your needs"
 echo "I would also recommend manually running each script to ensure it's working properly."
